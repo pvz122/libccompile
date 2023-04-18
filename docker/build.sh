@@ -28,7 +28,7 @@ cd 30-34
 ./build.sh
 cd ..
 
-cd 35-39
+cd 35-37
 ./build.sh
 cd ..
 
