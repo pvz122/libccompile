@@ -54,6 +54,13 @@ def met_requirements() -> bool:
     except subprocess.CalledProcessError:
         print("Error: tar is not installed")
         return False
+    # gzip installed
+    try:
+        subprocess.check_output(["gzip", "--version"],
+                                stderr=subprocess.STDOUT)
+    except subprocess.CalledProcessError:
+        print("Error: gzip is not installed")
+        return False
     return True
 
 
@@ -253,7 +260,8 @@ def compile_range(min_version: str, max_version: str):
                 )
             )
             continue
-        tar_files.append("{}-{}.tar".format(version_range["min"], version_range["max"]))
+        tar_files.append(
+            "{}-{}.tar".format(version_range["min"], version_range["max"]))
 
         # remove container
         ret_code = subprocess.call(
@@ -287,7 +295,8 @@ def compile_range(min_version: str, max_version: str):
             if len(tar_files) > 1:
                 # concatenate tar files into first.tar
                 # tar --concatenate --file=first.tar second.tar …
-                concat_cmd = ["tar", "--concatenate", "--file={}".format(tar_files[0])]
+                concat_cmd = ["tar", "--concatenate",
+                              "--file={}".format(tar_files[0])]
                 concat_cmd.extend(tar_files[1:])
                 ret_code = subprocess.call(concat_cmd)
                 if ret_code != 0:
@@ -303,24 +312,13 @@ def compile_range(min_version: str, max_version: str):
                     return
 
             # compress first.tar into glibc_min-max.tar.gz
-            # tar -zcf glibc_min-max.tar.gz first.tar
+            # rename first.tar to glibc_min-max.tar, then exec gzip glibc_min-max.tar
+            os.rename(
+                tar_files[0], "glibc_{0}-{1}.tar".format(min_version, max_version))
             ret_code = subprocess.call(
-                [
-                    "tar",
-                    "-zcf",
-                    "glibc_{0}-{1}.tar.gz".format(min_version, max_version),
-                    tar_files[0],
-                ]
-            )
+                ["gzip", "glibc_{0}-{1}.tar".format(min_version, max_version)])
             if ret_code != 0:
-                print("Error: tar compress failed")
-                return
-
-            # rm first.tar
-            try:
-                os.remove(tar_files[0])
-            except OSError as e:
-                print("Error: rm failed")
+                print("Error: gzip failed")
                 return
 
             print(
@@ -338,7 +336,8 @@ def compile_range(min_version: str, max_version: str):
                         "tar",
                         "-xf",
                         tar_file,
-                        "--directory=glibc_{0}-{1}".format(min_version, max_version),
+                        "--directory=glibc_{0}-{1}".format(
+                            min_version, max_version),
                     ]
                 )
                 if ret_code != 0:
@@ -371,8 +370,8 @@ def compile_range(min_version: str, max_version: str):
                 return
 
             print(
-                "Glibc versions {} to {} are successfully compiled and packed into glibc_{0}-{1}.tar.gz".format(
-                    min_version, max_version
+                "Glibc versions {} to {} are successfully compiled and packed into glibc_{}-{}.tar.gz".format(
+                    min_version, max_version, min_version, max_version
                 )
             )
 
@@ -440,17 +439,10 @@ def compile_current(src_path: str):
 
     # compress glibc_current.tar into glibc_current.tar.gz
     ret_code = subprocess.call(
-        ["tar", "-zcf", "glibc_current.tar.gz", "glibc_current.tar"]
+        ["gzip", "glibc_current.tar"]
     )
     if ret_code != 0:
-        print("Error: tar compress failed")
-        return
-
-    # rm glibc_current.tar
-    try:
-        os.remove("glibc_current.tar")
-    except OSError as e:
-        print("Error: rm failed")
+        print("Error: gzip failed")
         return
 
     print(
@@ -460,14 +452,14 @@ def compile_current(src_path: str):
 
 # build docker image
 def build_docker():
-    if not os.path.exists("docker"):
+    if not os.path.exists("../docker"):
         print(
             "Error: docker directory not found, you need to get the full source code of libccompile"
         )
         return
 
     # build docker image
-    os.chdir("docker")
+    os.chdir("../docker")
     ret_code = subprocess.call("./build.sh")
     if ret_code != 0:
         print("Error: docker build failed")
@@ -480,7 +472,16 @@ def clean_docker():
     for version_range in ["04-10", "11-15", "16-22", "23-29", "30-34", "35-37"]:
         try:
             subprocess.call(
-                ["docker", "rmi", "pvz122/libccompile:{}".format(version_range)],
+                ["docker", "rmi",
+                    "pvz122/libccompile:{}".format(version_range)],
+            )
+        except:
+            pass
+
+    for base_image in ['pvz122/debian:4.0', 'debian:6.0.8', 'debian:7.3', 'gcc:5.3', 'gcc:9.1', 'gcc:12']:
+        try:
+            subprocess.call(
+                ["docker", "rmi", base_image],
             )
         except:
             pass
