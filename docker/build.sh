@@ -3,7 +3,7 @@
 # if glibc-src.tar.gz is not present, download it
 if [ ! -f glibc-src.tar.gz ]; then
     git clone https://sourceware.org/git/glibc.git glibc-src
-    tar --no-same-owner -czf glibc-src.tar.gz glibc-src/
+    tar -czf glibc-src.tar.gz glibc-src/
     rm -rf glibc-src
 fi
 

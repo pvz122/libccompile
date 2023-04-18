@@ -202,6 +202,7 @@ def compile_range(min_version: str, max_version: str):
     # compile glibc versions from min_version to max_version
     version_pair = [min_version, max_version]
     tar_files = []
+
     while (version_range := version_range_selector(version_pair)) is not None:
         print(
             "Compiling glibc versions {} to {}".format(
@@ -289,6 +290,7 @@ def compile_range(min_version: str, max_version: str):
         )
 
     # pack all tar files into a tar.gz
+    print("Packing all glibc binaries...")
     if len(tar_files) > 0:
         # GUN tar supports concatenating multiple tar files into one
         if sys.platform == "linux":
