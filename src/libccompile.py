@@ -324,8 +324,8 @@ def compile_range(min_version: str, max_version: str):
                 return
 
             print(
-                "Glibc versions {} to {} are successfully compiled and packed into glibc_{0}-{1}.tar.gz".format(
-                    min_version, max_version
+                "Glibc versions {} to {} are successfully compiled and packed into glibc_{}-{}.tar.gz".format(
+                    min_version, max_version, min_version, max_version
                 )
             )
         # BSD tar does not support concatenating multiple tar files into one, simply extract all tar files and pack them into one tar.gz
