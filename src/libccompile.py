@@ -351,13 +351,11 @@ def compile_range(min_version: str, max_version: str):
                     return
 
             # pack glibc_min-max into tar.gz
-            ret_code = subprocess.call(
-                [
-                    "tar",
-                    "-zcf",
-                    "glibc_{0}-{1}.tar.gz".format(min_version, max_version),
-                    "glibc_{0}-{1}/*".format(min_version, max_version),
-                ]
+            ret_code = subprocess.run(
+                "tar -czf glibc_{}-{}.tar.gz glibc_{}-{}/*".format(
+                    min_version, max_version, min_version, max_version
+                ),
+                shell=True,
             )
             if ret_code != 0:
                 print("Error: tar compress failed")
