@@ -294,13 +294,19 @@ def compile_range(min_version: str, max_version: str):
         if sys.platform == "linux":
             if len(tar_files) > 1:
                 # concatenate tar files into first.tar
-                # tar --concatenate --file=first.tar second.tar …
-                concat_cmd = ["tar", "--concatenate", "--file={}".format(tar_files[0])]
-                concat_cmd.extend(tar_files[1:])
-                ret_code = subprocess.call(concat_cmd)
-                if ret_code != 0:
-                    print("Error: tar concatenate failed")
-                    return
+                # tar --concatenate --file=first.tar second.tar
+                for i in range(1, len(tar_files)):
+                    ret_code = subprocess.call(
+                        [
+                            "tar",
+                            "--concatenate",
+                            "--file={}".format(tar_files[0]),
+                            tar_files[i],
+                        ]
+                    )
+                    if ret_code != 0:
+                        print("Error: tar concatenate failed")
+                        return
 
                 # rm second.tar …
                 try:
