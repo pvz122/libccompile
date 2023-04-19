@@ -454,14 +454,28 @@ def compile_current(src_path: str):
 
 # build docker image
 def build_docker():
-    if not os.path.exists("../docker"):
+    docker_dir = os.path.join(os.path.dirname(__file__), "../docker")
+    if not os.path.exists(docker_dir):
         print(
-            "Error: docker directory not found, you need to get the full source code of libccompile"
+            "Warning: docker directory not found, libccompile will try to clone it from github repo"
         )
-        return
+        
+        ret_code = subprocess.call(
+            [
+                "git",
+                "clone",
+                "https://github.com/pvz122/libccompile.git",
+                "/tmp/libccompile",
+            ]
+        )
+        if ret_code != 0:
+            print("Error: git clone failed")
+            return
+        
+        docker_dir = os.path.join("/tmp/libccompile", "docker")
 
     # build docker image
-    os.chdir("../docker")
+    os.chdir(docker_dir)
     ret_code = subprocess.call("./build.sh")
     if ret_code != 0:
         print("Error: docker build failed")
